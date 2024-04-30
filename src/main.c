@@ -231,7 +231,8 @@ void MinigameActors_PhysicsTick(void) {
 
     
     for (actor1 = gActors, i = 0; i < ACTORS_MAX; i++, actor1++) {
-        if (actor1->actorID != CUE_BALL && actor1->actorID != BILLIARDS_BALL && actor1->actorID != BOWLING_BALL && actor1->actorID != BOWLING_PINS) {
+        // Skip actors that are not cue balls or billiards balls
+        if (actor1->actorID != CUE_BALL && actor1->actorID != BILLIARDS_BALL) {
             continue;
         }
         
@@ -241,7 +242,7 @@ void MinigameActors_PhysicsTick(void) {
             temp_f18 = actor1->pos.z - gActors[j].pos.z;
             spCC = gActors[j].pos.x - actor1->pos.x;
             spC8 = gActors[j].pos.z - actor1->pos.z;
-            if ((gActors[j].actorID == CUE_BALL) || (gActors[j].actorID == BILLIARDS_BALL) || (gActors[j].actorID == BOWLING_PINS)) {
+            if ((gActors[j].actorID == CUE_BALL) || (gActors[j].actorID == BILLIARDS_BALL)) {
                 temp_f12_2 = (temp_f16 * temp_f16) + (temp_f18 * temp_f18);
                 if (!((temp_f20 * temp_f20) < temp_f12_2)) {
                     if (!((actor1->unknownPositionThings[0].unk_10 + actor1->pos.y) < gActors[j].pos.y)) {
@@ -303,7 +304,6 @@ void MinigameActors_PhysicsTick(void) {
                                 gActors[j].pos.x += (spCC * (temp_f20 - temp_f0_7)) / (temp_f20_3 * 2);
                                 gActors[j].pos.z += (spC8 * (temp_f20 - temp_f0_7)) / (temp_f20_3 * 2);
                             }
-                            //Actor_PlaySound(actor1, 0xA8, 1, 1);
                         }
                     }
                 }
