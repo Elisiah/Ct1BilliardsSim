@@ -16,7 +16,7 @@ all: $(TARGET)
 
 # Rule to build the executable
 $(TARGET): $(OBJECTS)
-	@$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+	@$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ -lm
 
 # Rule to compile C source files into object files
 $(BUILD_DIR)/%.o: $(SRCDIR)/%.c | $(BUILD_DIR)
