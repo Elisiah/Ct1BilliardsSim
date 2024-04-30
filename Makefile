@@ -1,7 +1,7 @@
 # Makefile to compile all C files in the "src" directory into an executable
 
 CC = gcc
-CFLAGS = -Wall -O2
+CFLAGS = -Wall -O2 -Wno-missing-braces -Wno-strict-aliasing
 INCLUDES = -Iinclude
 SRCDIR = src
 BUILD_DIR = build
