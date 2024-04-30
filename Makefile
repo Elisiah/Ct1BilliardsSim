@@ -1,7 +1,7 @@
 # Makefile to compile all C files in the "src" directory into an executable
 
 CC = gcc
-CFLAGS = -Wall -O2
+CFLAGS = -Wall -O2 -Wno-missing-braces -Wno-strict-aliasing
 INCLUDES = -Iinclude
 SRCDIR = src
 BUILD_DIR = build
@@ -16,7 +16,7 @@ all: $(TARGET)
 
 # Rule to build the executable
 $(TARGET): $(OBJECTS)
-	@$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+	@$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ -lm
 
 # Rule to compile C source files into object files
 $(BUILD_DIR)/%.o: $(SRCDIR)/%.c | $(BUILD_DIR)
