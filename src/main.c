@@ -13,10 +13,9 @@ Actor gActors[ACTORS_MAX];
 Tongue* gTongueOnePointer;
 PlayerActor* gCurrentActivePlayerPointer;
 
-f32 D_80108E7C[] = {0.0f, 0.8951740265f, 1.789911032f, 2.683774948f, 3.576334f, 4.467158794f, 5.355824947f, 6.241913795f, 7.125016212f, 8.004729271f, 8.880659103f, 9.752425194f, 10.61965466f, 11.48199081f, 12.33908653f, 13.19061089f, 14.03624344f, 14.87568188f, 15.70863819f, 16.53483772f, 17.35402489f, 18.1659565f, 18.97040749f, 19.76716995f, 20.55604553f, 21.33685875f, 22.10944748f, 22.87366486f, 23.62937737f, 24.37646866f, 25.11483574f, 25.84438705f, 26.56505013f, 27.27676392f, 27.97947311f, 28.6731472f, 29.35775375f, 30.03327942f, 30.69972229f, 31.35708427f, 32.00538254f, 32.64464188f, 33.27488708f, 33.89616776f, 34.50852203f, 35.11201096f, 35.70669174f, 36.29262924f, 36.86989975f, 37.43857193f, 37.99873352f, 38.55046463f, 39.09386063f, 39.62900543f, 40.15599823f, 40.6749382f, 41.18592453f, 41.68906021f, 42.18444443f, 42.67218399f, 43.15238953f, 43.62516403f, 44.09061813f, 44.54886246f, 45.0f};
+f32 angleLookup[] = {0.0f, 0.8951740265f, 1.789911032f, 2.683774948f, 3.576334f, 4.467158794f, 5.355824947f, 6.241913795f, 7.125016212f, 8.004729271f, 8.880659103f, 9.752425194f, 10.61965466f, 11.48199081f, 12.33908653f, 13.19061089f, 14.03624344f, 14.87568188f, 15.70863819f, 16.53483772f, 17.35402489f, 18.1659565f, 18.97040749f, 19.76716995f, 20.55604553f, 21.33685875f, 22.10944748f, 22.87366486f, 23.62937737f, 24.37646866f, 25.11483574f, 25.84438705f, 26.56505013f, 27.27676392f, 27.97947311f, 28.6731472f, 29.35775375f, 30.03327942f, 30.69972229f, 31.35708427f, 32.00538254f, 32.64464188f, 33.27488708f, 33.89616776f, 34.50852203f, 35.11201096f, 35.70669174f, 36.29262924f, 36.86989975f, 37.43857193f, 37.99873352f, 38.55046463f, 39.09386063f, 39.62900543f, 40.15599823f, 40.6749382f, 41.18592453f, 41.68906021f, 42.18444443f, 42.67218399f, 43.15238953f, 43.62516403f, 44.09061813f, 44.54886246f, 45.0f};
 
 f32 CalculateAngleOfVector(f32 x, f32 y) {
-    // s32 pad[2];
     f32 angle;
     f32 frac;
     f32 lookupTwo;
@@ -72,8 +71,8 @@ f32 CalculateAngleOfVector(f32 x, f32 y) {
     }
     
     /* angle lookup table is 65 entries long, but the last entry is the same as the first */
-    lookupOne = D_80108E7C[floor];
-    lookupTwo = D_80108E7C[next_index];
+    lookupOne = angleLookup[floor];
+    lookupTwo = angleLookup[next_index];
     
     /* Lerp between lookup angle results */
     switch (quadrant) {
@@ -117,77 +116,91 @@ f32 CalcAngleBetween2DPoints(f32 x1, f32 y1, f32 x2, f32 y2) {
     return CalculateAngleOfVector(x2 - x1, -(y2 - y1));
 }
 
-void ActorTick_CueBall(Actor* arg0) {
-    f32 temp_f0;
+void ActorTick_CueBall(Actor* cueBall) {
+    f32 angleOfCollision;
+    f32 segXPos;
+    f32 segZPos;
     
-    if (arg0->tongueBumpSeg != 0) {
-        if ((gTongueOnePointer->segments == arg0->tongueBumpSeg) || gTongueOnePointer->segments == (arg0->tongueBumpSeg + 1)) {
+    // if the collision was hit by a tongue segment
+    if (cueBall->tongueBumpSeg != 0) {
+        // if the player's tongue length is that of the segment that hit the ball 
+        //(approximately adjusting for the fact the hit may have retracted one seg)
+        if ((gTongueOnePointer->segments == cueBall->tongueBumpSeg) || gTongueOnePointer->segments == (cueBall->tongueBumpSeg + 1)) {
+            // if the player is not vaulting
             if (gTongueOnePointer->vaulting == 0) {
-                temp_f0 = CalcAngleBetween2DPoints(gTongueOnePointer->tongueXs[gTongueOnePointer->segments - 1] + gCurrentActivePlayerPointer->pos.x, gTongueOnePointer->tongueZs[gTongueOnePointer->segments - 1] + gCurrentActivePlayerPointer->pos.z, arg0->pos.x, arg0->pos.z);
-                arg0->vel.x = __cosf(temp_f0 * 2 * PI / MAX_DEGREES) * arg0->position._f32.x;
-                arg0->vel.z = -__sinf(temp_f0 * 2 * PI / MAX_DEGREES) * arg0->position._f32.x;
-                //PlaySoundEffect(0xA7, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+                // the coordinate of the last tongue segment assuming tongue pos is player relative
+                segXPos = gTongueOnePointer->tongueXs[gTongueOnePointer->segments - 1] + gCurrentActivePlayerPointer->pos.x;
+                segZPos = gTongueOnePointer->tongueZs[gTongueOnePointer->segments - 1] + gCurrentActivePlayerPointer->pos.z;
+
+                angleOfCollision = CalcAngleBetween2DPoints(segXPos, segZPos, cueBall->pos.x, cueBall->pos.z);
+
+                cueBall->vel.x = __cosf(DEGREES_TO_RADIANS_2PI(angleOfCollision)) * cueBall->friction._f32.x;
+                cueBall->vel.z = -__sinf(DEGREES_TO_RADIANS_2PI(angleOfCollision)) * cueBall->friction._f32.x;
             }
         }
     }
     
-    ActorTick_MinigameActor(arg0);
+    ActorTick_MinigameActor(cueBall);
     
-    if (arg0->pos.y < -arg0->unknownPositionThings[0].unk_10) {
-        arg0->unk_98 = 1;
-        arg0->pos.x = gCurrentActivePlayerPointer->pos.x;
-        arg0->pos.y = arg0->unk_134[0] + 1000.0f;
-        arg0->pos.z = gCurrentActivePlayerPointer->pos.z;
-        arg0->unk_A0.unk_08 = 0;
-        if (arg0->pos.x > 1800.0f) {
-            arg0->pos.x = 1800.0f;
+    if (cueBall->pos.y < -cueBall->unknownPositionThings[0].unk_10) {
+        cueBall->unk_98 = 1;
+        cueBall->pos.x = gCurrentActivePlayerPointer->pos.x;
+        cueBall->pos.y = cueBall->unk_134[0] + 1000.0f;
+        cueBall->pos.z = gCurrentActivePlayerPointer->pos.z;
+        cueBall->unk_A0.unk_08 = 0;
+        if (cueBall->pos.x > 1800.0f) {
+            cueBall->pos.x = 1800.0f;
         }
-        if (arg0->pos.x < -1800.0f) {
-            arg0->pos.x = -1800.0f;
+        if (cueBall->pos.x < -1800.0f) {
+            cueBall->pos.x = -1800.0f;
         }
-        if (arg0->pos.z > 900.0f) {
-            arg0->pos.z = 900.0f;
+        if (cueBall->pos.z > 900.0f) {
+            cueBall->pos.z = 900.0f;
         }
-        if (arg0->pos.z < -900.0f) {
-            arg0->pos.z = -900.0f;
+        if (cueBall->pos.z < -900.0f) {
+            cueBall->pos.z = -900.0f;
         }
-        arg0->vel.z = 0.0f;
-        arg0->vel.y = 0.0f;
-        arg0->vel.x = 0.0f;
+        cueBall->vel.z = 0.0f;
+        cueBall->vel.y = 0.0f;
+        cueBall->vel.x = 0.0f;
     }
 }
 
-void ActorTick_MinigameActor(Actor* arg0) {
+void ActorTick_MinigameActor(Actor* actor) {
     f32 temp_f16;
     f32 temp_f6;
 
-    arg0->vel.x -= (arg0->vel.x * arg0->position._f32.y);
-    arg0->vel.z -= (arg0->vel.z * arg0->position._f32.y);
-    if (((arg0->vel.x * arg0->vel.x) + (arg0->vel.z * arg0->vel.z)) < 1.0f) {
-        arg0->vel.x = arg0->vel.z = 0.0f;
+    // Friction-based slowdown over time
+    actor->vel.x -= (actor->vel.x * actor->friction._f32.y);
+    actor->vel.z -= (actor->vel.z * actor->friction._f32.y);
+
+    // If the magnitude of velocity falls below a threshold, set it to zero
+    if (((actor->vel.x * actor->vel.x) + (actor->vel.z * actor->vel.z)) < 1.0f) {
+        actor->vel.x = actor->vel.z = 0.0f;
     }
-    if (arg0->unk_98 != 0) {
-        // if (arg0->vel.y == 0) {
-        //     PlaySoundEffect(0xA9, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
-        // }
-        if (arg0->pos.y > 0.0f) {
-            arg0->vel.y -= 3.2f + (arg0->vel.y * 0.05f);
+
+    // Handling vertical velocity when affected by gravity
+    if (actor->unk_98 != 0) {
+        if (actor->pos.y > 0.0f) {
+            actor->vel.y -= 3.2f + (actor->vel.y * 0.05f);
         } else {
-            arg0->vel.y -= 6.4f;
+            actor->vel.y -= 6.4f;
         }
-    } else if (arg0->vel.y != 0) {
-        arg0->vel.y = 0;
-        arg0->unk_A0.unk_08 = 1;
+    } else if (actor->vel.y != 0) {
+        actor->vel.y = 0;
+        actor->unk_A0.unk_08 = 1;
     }
-    if (arg0->unk_9C != 0) {
-        temp_f16 = (arg0->unk_B4 * arg0->unk_B4) + (arg0->unk_BC * arg0->unk_BC);
-        temp_f6 = (arg0->vel.x * arg0->unk_B4) + (arg0->vel.z * arg0->unk_BC);
-        arg0->vel.x -= ((2 * temp_f6 * arg0->unk_B4) / temp_f16);
-        arg0->vel.z -= ((2 * temp_f6 * arg0->unk_BC) / temp_f16);
+
+    // Handling additional physics effects
+    if (actor->unk_9C != 0) {
+        // Calculate some temporary values for further physics calculations
+        temp_f16 = (actor->unk_B4 * actor->unk_B4) + (actor->unk_BC * actor->unk_BC);
+        temp_f6 = (actor->vel.x * actor->unk_B4) + (actor->vel.z * actor->unk_BC);
+
+        // Update velocity components based on additional physics effects
+        actor->vel.x -= ((2 * temp_f6 * actor->unk_B4) / temp_f16);
+        actor->vel.z -= ((2 * temp_f6 * actor->unk_BC) / temp_f16);
     }
-    // if (((arg0->vel.x * arg0->vel.x) + (arg0->vel.z * arg0->vel.z) > 8.0f) && (gTimer % 60 == 0)) {
-    //     PlaySoundEffect(0xD9, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
-    // }
 }
 
 void MinigameActors_PhysicsTick(void) {

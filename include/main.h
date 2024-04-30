@@ -6,6 +6,8 @@
 #define ACTORS_MAX 64
 #define PLAYERS_MAX 4
 
+#define DEGREES_TO_RADIANS_2PI(x) ((x) * 2 * PI / MAX_DEGREES)
+
 typedef unsigned char			u8;	/* unsigned  8-bit */
 typedef unsigned short			u16;	/* unsigned 16-bit */
 typedef unsigned long			u32;	/* unsigned 32-bit */
@@ -135,7 +137,7 @@ typedef struct Actor {
         /* 0x154 */ union {
         Vec2f _f32;
         Vec2w _s32;
-    } position;
+    } friction;
     /* 0x15C */ f32 unk_15C;
     /* 0x160 */ f32 unk_160;
     /* 0x164 */ f32 unk_164;
