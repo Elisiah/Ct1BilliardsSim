@@ -1,10 +1,22 @@
 #include <stdio.h>
+#include <math.h>
+
 #include "main.h"
+
+float __cosf( float x );
+float __sinf( float x );
+void ActorTick_MinigameActor(Actor* arg0);
+
+//this bss needs to be initialized to something, but for now we wont so it at least builds
+//this means currently, the input and output of the program is random garbage
+Actor gActors[ACTORS_MAX]; 
+Tongue* gTongueOnePointer;
+PlayerActor* gCurrentActivePlayerPointer;
 
 f32 D_80108E7C[] = {0.0f, 0.8951740265f, 1.789911032f, 2.683774948f, 3.576334f, 4.467158794f, 5.355824947f, 6.241913795f, 7.125016212f, 8.004729271f, 8.880659103f, 9.752425194f, 10.61965466f, 11.48199081f, 12.33908653f, 13.19061089f, 14.03624344f, 14.87568188f, 15.70863819f, 16.53483772f, 17.35402489f, 18.1659565f, 18.97040749f, 19.76716995f, 20.55604553f, 21.33685875f, 22.10944748f, 22.87366486f, 23.62937737f, 24.37646866f, 25.11483574f, 25.84438705f, 26.56505013f, 27.27676392f, 27.97947311f, 28.6731472f, 29.35775375f, 30.03327942f, 30.69972229f, 31.35708427f, 32.00538254f, 32.64464188f, 33.27488708f, 33.89616776f, 34.50852203f, 35.11201096f, 35.70669174f, 36.29262924f, 36.86989975f, 37.43857193f, 37.99873352f, 38.55046463f, 39.09386063f, 39.62900543f, 40.15599823f, 40.6749382f, 41.18592453f, 41.68906021f, 42.18444443f, 42.67218399f, 43.15238953f, 43.62516403f, 44.09061813f, 44.54886246f, 45.0f};
 
 f32 CalculateAngleOfVector(f32 x, f32 y) {
-    s32 pad[2];
+    // s32 pad[2];
     f32 angle;
     f32 frac;
     f32 lookupTwo;
@@ -107,16 +119,14 @@ f32 CalcAngleBetween2DPoints(f32 x1, f32 y1, f32 x2, f32 y2) {
 
 void ActorTick_CueBall(Actor* arg0) {
     f32 temp_f0;
-    Actor* actor = arg0;
     
-
     if (arg0->tongueBumpSeg != 0) {
         if ((gTongueOnePointer->segments == arg0->tongueBumpSeg) || gTongueOnePointer->segments == (arg0->tongueBumpSeg + 1)) {
             if (gTongueOnePointer->vaulting == 0) {
                 temp_f0 = CalcAngleBetween2DPoints(gTongueOnePointer->tongueXs[gTongueOnePointer->segments - 1] + gCurrentActivePlayerPointer->pos.x, gTongueOnePointer->tongueZs[gTongueOnePointer->segments - 1] + gCurrentActivePlayerPointer->pos.z, arg0->pos.x, arg0->pos.z);
                 arg0->vel.x = __cosf(temp_f0 * 2 * PI / MAX_DEGREES) * arg0->position._f32.x;
                 arg0->vel.z = -__sinf(temp_f0 * 2 * PI / MAX_DEGREES) * arg0->position._f32.x;
-                playSoundEffect(0xA7, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+                //PlaySoundEffect(0xA7, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
             }
         }
     }
@@ -272,8 +282,8 @@ void MinigameActors_PhysicsTick(void) {
                                     }
                                 }
                             }
-                            temp_f20_3 = __sqrtf(temp_f20_2);
-                            temp_f0_7 = __sqrtf(temp_f12_2);
+                            temp_f20_3 = sqrtf(temp_f20_2);
+                            temp_f0_7 = sqrtf(temp_f12_2);
                             if (temp_f20_3 != 0.0f) {
                                 actor1->pos.x -= (spCC * (temp_f20 - temp_f0_7)) / (temp_f20_3 * 2);
                                 actor1->pos.z -= (spC8 * (temp_f20 - temp_f0_7)) / (temp_f20_3 * 2);
@@ -289,6 +299,6 @@ void MinigameActors_PhysicsTick(void) {
     }
 }
 
-void main(void) {
-
+int main(void) {
+    return 0;
 }

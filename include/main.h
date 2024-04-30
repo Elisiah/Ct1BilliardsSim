@@ -3,6 +3,8 @@
 
 #define PI 3.141592653589793
 #define MAX_DEGREES 360.0
+#define ACTORS_MAX 64
+#define PLAYERS_MAX 4
 
 typedef unsigned char			u8;	/* unsigned  8-bit */
 typedef unsigned short			u16;	/* unsigned 16-bit */
@@ -142,8 +144,108 @@ typedef struct Actor {
     /* 0x170 */ f32 unk_170;
 } Actor; //sizeof 0x174
 
-#define ACTORS_MAX 64
-#define PLAYERS_MAX 4
+typedef struct Tongue { // at 80169268 (for p1)
+    /* 0x00 */ u32 vaulting; //0x00 = no, 0x01 = yes
+    /* 0x04 */ u32 tongueMode; //enum of tongue actions
+    /* 0x08 */ s32 segments;
+    /* 0x0C */ s32 poleSegmentAt;
+    /* 0x10 */ s32 timer;
+    /* 0x14 */ s32 cameraSegmentAt;//where to point the camera
+    /* 0x18 */ f32 tongueXs[33]; //all (including the rope model) positions
+    /* 0x9C */ f32 tongueYs[33];
+    /* 0x120*/ f32 tongueZs[33];
+    /* 0x1A4*/ f32 tongueAngles[33];
+    /* 0x228*/ f32 tongueForwards[32];
+    /* 0x2A8*/ f32 tongueHalfX[32]; // unsure, axes related though
+    /* 0x328*/ f32 tongueHalfZ[32];
+    /* 0x3A8*/ f32 controlAngle;
+    /* 0x3AC*/ f32 length;
+    /* 0x3B0*/ f32 trueAngle;
+    /* 0x3B4*/ u32 onTongue[64];
+    /* 0x4B4*/ u32 amountOnTongue; //called "capture_num" in US 1.0
+    /* 0x4B8*/ u32 inMouth[64];
+    /* 0x5B8*/ s32 amountInMouth;
+    //all of this has to do with vaulting
+    /* 0x5BC*/ f32 reset1[1];
+    /* 0x5C0*/ f32 reset2;
+    /* 0x5C4*/ f32 reset3;
+    /* 0x5C8*/ f32 reset4;
+    /* 0x5CC*/ f32 reset5;
+    /* 0x5D0*/ f32 reset6;
+    /* 0x5D4*/ f32 reset7;
+    /* 0x5D8*/ f32 reset8;
+    /* 0x5DC*/ f32 reset9;
+    /* 0x5E0*/ f32 reset10;//used, but always set to 0 at the peak of vault
+    /* 0x5E4*/ f32 angleOfVault;
+    /* 0x5E8*/ f32 powerOfVault;
+    /* 0x5EC*/ f32 xOffset;//offsets for when you release
+    /* 0x5F0*/ f32 yOffset;
+    /* 0x5F4*/ f32 zOffset;
+    /* 0x5F8*/ u32 vaultTime;
+    //all of this has to do with poles
+    /* 0x5FC*/ f32 lastTongueOffset;//offset for matching the twisted model to the last segment
+    /* 0x600*/ u32 poleID;//please tell me im right
+    /* 0x604*/ s32 tongueDir;//0x01 for counter clockwise. 0xFFFFFFFF for clockwise.
+    //wall
+    /* 0x608*/ u32 wallTime;//timer for tongue-touching a wall
+} Tongue; //sizeof 0x60C
+
+typedef struct PlayerActor {
+    /* 0x000 */ u32 playerID;
+    /* 0x004 */ Vec3f pos;
+    /* 0x010 */ Vec3f pos2; //slightly off from pos
+    /* 0x01C */ f32 yCounter; //counts around where the y is but not at
+    /* 0x020 */ f32 waterGIMP; //how much to gimp you in water? idk but its correlated
+    /* 0x024 */ Vec3f vel;
+    /* 0x030 */ Vec3f vaultlocity;
+    /* 0x03C */ f32 yAngle;
+    /* 0x040 */ f32 forwardVel; //between 0 and 20.8. gets broken on slope jumps
+    /* 0x044 */ f32 forwardImpulse;
+    /* 0x048 */ f32 waterFactor; //gets effected in water again
+    /* 0x04C */ f32 hitboxSize; //30 default
+    /* 0x050 */ f32 hitboxYStretch; //unconfirmed. 150 default.
+    /* 0x054 */ u32 canJump;    //0x00 = yes, 0x01 = no
+    /* 0x058 */ u32 jumpReleasedInAir;    // 0x00 = no, 0x01 = yes
+    /* 0x05C */ s32 jumpAnimFrame;
+    /* 0x060 */ u32 hasTumbled;    //0x00 = no, 0x01 = yes. resets on jump.
+    /* 0x064 */ u32 unk64;
+    /* 0x068 */ u32 inWater;//0x00 = no, 0x01 = yes.
+    /* 0x06C */ u32 squishTimer;
+    /* 0x070 */ f32 yScale;
+    /* 0x074 */ u32 locked; //0x00 = no, 0x16 = yes. when using lock to stand in place.
+    /* 0x078 */ s32 amountToShoot; //number for machine gun shoot
+    /* 0x07C */ s32 surface; //-1 when off ground, diff number when on diff surface. if 0 you slow to a crawl
+    /* 0x080 */ s32 wSurface; //-1 when not in water, diff number when in diff water
+    /* 0x084 */ s32 surfaceSlide; //1 if you slide on a slope while standing. 0 if else (not walkable slopes)
+    /* 0x088 */ s32 surfaceFine; //more accurate
+    /* 0x08C */ s32 vaulting; // 0 if not, 1 if
+    /* 0x090 */ f32 xFromCenter; //from center of room (when on ground)
+    /* 0x094 */ f32 yFromCenter;
+    /* 0x098 */ f32 zFromCenter;
+    /* 0x09C */ Vec3f shift; //override(?) when on moving objects (falling bridges, etc)
+    /* 0x0A8 */ Vec3f move; //override when sliding on slopes or on poles
+    /* 0x0B4 */ u32 groundMovement; //0x00 = standing, 0x01 = walking, 0x02 = running
+    /* 0x0B8 */ f32 globalTimer;
+    /* 0x0BC */ s32 unkBC;
+    /* 0x0C0 */ u32 amountLeftToShoot;
+    /* 0x0C4 */ u32 vaultFall;//timer for falling after vault
+    /* 0x0C8 */ s32 hp;
+    /* 0x0CC */ u32 playerHURTSTATE;
+    /* 0x0D0 */ s32 playerHURTTIMER;
+    /* 0x0D4 */ u32 playerHURTANIM;
+    /* 0x0D8 */ u32 playerHURTBY;
+    /* 0x0DC */ f32 unk_DC[6];
+    /* 0x0F4 */ f32 unk_F4[6];
+    /* 0x10C */ f32 timerDown;
+    /* 0x110 */ f32 reticleSize;
+    /* 0x114 */ s32 active; //0x00 = no, 0x01 = yes
+    /* 0x118 */ s32 exists; //0x00 = no, 0x01 = yes
+    /* 0x11C */ u32 power; //enum of power it has
+    /* 0x120 */ s32 powerTimer; 
+    /* 0x124 */ s32 powerTimerTill; 
+    /* 0x128 */ f32 tongueYOffset; 
+    /* 0x12C */ f32 tongueSeperation; 
+} PlayerActor; //sizeof 0x130
 
 enum actorIDs {
 	ACTOR_NULL = 0,
