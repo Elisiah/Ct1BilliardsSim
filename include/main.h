@@ -6,6 +6,8 @@
 #define ACTORS_MAX 64
 #define PLAYERS_MAX 4
 
+#define SQ(x) ((x) * (x))
+#define NORM_2(x,y) (sqrtf(SQ(x) + SQ(y)))
 #define DEGREES_TO_RADIANS_2PI(x) ((x) * 2 * PI / MAX_DEGREES)
 
 typedef unsigned char			u8;	/* unsigned  8-bit */
